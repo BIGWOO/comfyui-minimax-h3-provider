@@ -1,0 +1,115 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "ApplyMiniMaxH3FirstBlockCache",
+    "inputs": {
+      "mode": "H3 Safe — 0.08 / max 2",
+      "threshold": 0.1,
+      "start_percent": 0.1,
+      "end_percent": 0.95,
+      "max_consecutive_hits": 2,
+      "temporal_guard": false,
+      "model": [
+        "1",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "MiniMaxH3Director",
+    "inputs": {
+      "task_type": "t2v — 文生视频(Text to Video)",
+      "global_prompt": "A small red robot walks across a clean studio floor, steady camera, natural footsteps and quiet room ambience. No text or logo.",
+      "bd_grp_sample": "采样设置",
+      "cfg": 1.0,
+      "seed": 424242,
+      "frame_rate": 24.0,
+      "width": 640,
+      "height": 352,
+      "ref_max_size": 640,
+      "total_frames": 56,
+      "timeline_data": "{\"version\": 4, \"editMode\": \"global\", \"timelineMode\": \"gen_blank\", \"totalFrames\": 56, \"frameRate\": 24.0, \"width\": 640, \"height\": 352, \"refMaxSize\": 640, \"output\": {\"mode\": \"fixed\", \"longEdge\": 640, \"width\": 640, \"height\": 352, \"maxExportFrames\": 0, \"exportMode\": \"all\", \"audioMode\": \"generate\", \"continuityEnabled\": false, \"continuityOverlapFrames\": 9}, \"videoClips\": [], \"video\": {\"fileName\": \"\", \"videoFile\": \"\", \"subfolder\": \"\", \"type\": \"input\", \"frames\": [], \"frameMap\": []}, \"global\": {\"taskType\": \"t2v — 文生视频(Text to Video)\", \"prompt\": \"A small red robot walks across a clean studio floor, steady camera, natural footsteps and quiet room ambience. No text or logo.\", \"refs\": [], \"referenceVideo\": {}, \"continuousReference\": false, \"genImage\": {\"imageFile\": \"\"}}, \"segments\": [{\"id\": \"s0\", \"start\": 0, \"length\": 56, \"frameCount\": 56, \"prompt\": \"\", \"taskType\": \"\", \"refs\": [], \"referenceVideo\": {}}], \"runSelectEnabled\": false, \"runSelection\": []}",
+      "bd_grp_advanced": "高级采样",
+      "steps": 20,
+      "sampler": "res_multistep",
+      "scheduler": "simple",
+      "shift_video": 12.0,
+      "shift_audio": 3.0,
+      "bd_grp_perf": "性能",
+      "clear_vram_between_segments": true,
+      "export_source_images": false,
+      "model": [
+        "5",
+        0
+      ],
+      "video_vae": [
+        "3",
+        0
+      ],
+      "audio_vae": [
+        "4",
+        0
+      ],
+      "clip": [
+        "2",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "fps": [
+        "6",
+        2
+      ],
+      "bit_depth": 8,
+      "images": [
+        "6",
+        0
+      ],
+      "audio": [
+        "6",
+        1
+      ]
+    }
+  },
+  "8": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "filename_prefix": "minimax-h3-tests/benchmark-safe",
+      "format": "auto",
+      "video": [
+        "7",
+        0
+      ],
+      "codec": "auto"
+    }
+  }
+}

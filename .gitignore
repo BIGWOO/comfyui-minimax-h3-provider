@@ -1,0 +1,16 @@
+.venvs/
+runtime/
+models/
+data/input/*
+data/output/*
+data/temp/*
+data/user/*
+logs/*
+state/*
+!state/.gitkeep
+tests/assets/*
+tests/results/
+__pycache__/
+*.pyc
+
+!.gitkeep

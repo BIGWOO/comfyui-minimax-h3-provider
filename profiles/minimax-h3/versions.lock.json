@@ -1,0 +1,29 @@
+{
+  "python": "3.12",
+  "torch_index": "https://download.pytorch.org/whl/cu130",
+  "torch_packages": [
+    "torch==2.13.0+cu130",
+    "torchvision==0.28.0+cu130",
+    "torchaudio==2.11.0+cu130"
+  ],
+  "repositories": [
+    {
+      "name": "ComfyUI",
+      "url": "https://github.com/Comfy-Org/ComfyUI.git",
+      "commit": "cbbc9dab1f03d0d9a6caa8a8be7d77a7e37e1e44",
+      "target": "runtime/ComfyUI"
+    },
+    {
+      "name": "ComfyUI_MiniMaxH3_Director",
+      "url": "https://github.com/AIMixer/ComfyUI_MiniMaxH3_Director.git",
+      "commit": "ab5f3b17ff343e84ff5010f998d30a2e930bd32d",
+      "target": "runtime/ComfyUI/custom_nodes/ComfyUI_MiniMaxH3_Director"
+    },
+    {
+      "name": "ComfyUI-MiniMaxH3-FirstBlockCache",
+      "url": "https://github.com/duckyshell/ComfyUI-MiniMaxH3-FirstBlockCache.git",
+      "commit": "725973c3bfd9de6dce249bc93dc5fe27f820df31",
+      "target": "runtime/ComfyUI/custom_nodes/ComfyUI-MiniMaxH3-FirstBlockCache"
+    }
+  ]
+}

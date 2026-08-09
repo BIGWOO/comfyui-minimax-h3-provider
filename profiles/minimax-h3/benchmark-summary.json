@@ -1,0 +1,29 @@
+{
+  "date": "2026-08-10",
+  "hardware": "NVIDIA GeForce RTX 3090 24GB",
+  "settings": {
+    "task": "t2v",
+    "width": 640,
+    "height": 352,
+    "frames": 56,
+    "quality_steps": 20,
+    "turbo_steps": 4,
+    "seed": 424242
+  },
+  "results_seconds": {
+    "baseline": 45.813,
+    "fbc_safe": 35.485,
+    "fbc_fast": 35.547,
+    "turbo": 25.422
+  },
+  "fast_speedup_percent": 22.41,
+  "fast_meets_10_percent_gate": true,
+  "packaging": {
+    "frames": 56,
+    "fps": 24,
+    "audio_rate": 32000,
+    "audio_channels": 2
+  },
+  "visual_review": "Baseline, Safe and Fast representative frames retained the same subject and composition without obvious cache corruption. Turbo produced a visibly different draft interpretation, as expected.",
+  "decision": "Use H3 Fast as the default for FL2VA and Ref2VA quality workflows. Keep Turbo as a separate non-FBC draft workflow."
+}

@@ -1,74 +1,126 @@
-# ComfyUI Local
+# MiniMax H3 ComfyUI Provider
 
-Windows-native ComfyUI manager project for MiniMax H3 and future image/video model profiles.
+Reproducible MiniMax H3 runtime for Creator IP Studio and direct ComfyUI use.
+It pins ComfyUI, Director, FirstBlockCache, Python packages, and every model
+artifact instead of committing runtime code or model weights.
 
-## Hardware profile
+## Hardware and storage
 
-- NVIDIA GeForce RTX 3090 24 GB
-- 32 GB system RAM
-- NVMe project/model storage
-- Windows-managed page file
+- NVIDIA GPU with at least 24 GB VRAM is the validated baseline.
+- 32 GB system RAM and a system-managed page file or swap are recommended.
+- The default `creator` model pack needs about 43 GB; reserve at least 70 GB.
+- The full FL2VA + Ref2VA pack is 63.8 GB; reserve at least 100 GB.
 
-## Quick start
+The validated machine is an RTX 3090 24 GB on Windows. Linux cloud GPU hosts
+use the same version and model locks, but should still run the smoke test before
+production work.
 
-Run these commands in PowerShell from this directory:
+## Windows installation
 
-```powershell
-.\scripts\setup.ps1
-.\scripts\download-models.ps1 -Pack all
-.\scripts\start.ps1 -Profile main
-```
-
-In a second PowerShell window:
-
-```powershell
-.\scripts\verify.ps1
-.\scripts\build-workflows.ps1
-```
-
-Stop the project-owned server safely with:
+Requirements: Git, PowerShell 7, `uv`, a current NVIDIA driver, and sufficient
+free SSD/NVMe space. A system CUDA Toolkit is not required.
 
 ```powershell
-.\scripts\stop.ps1
+git clone https://github.com/BIGWOO/comfyui-minimax-h3-provider.git
+cd comfyui-minimax-h3-provider
+./scripts/setup.ps1
+./scripts/download-models.ps1 -Pack creator
+./scripts/start.ps1 -Profile main -Background
+./scripts/verify.ps1 -Pack creator
 ```
 
-User workflows are written to `workflows\minimax-h3`. Models, runtime code,
-virtual environments, generated media, and logs are intentionally excluded
-from the manager repository.
+## Linux/cloud installation
 
-## Launch profiles
+Requirements: Git, Bash, Python 3, `uv`, a compatible NVIDIA driver, and a
+working NVIDIA GPU assignment.
 
-- `main`: Dynamic VRAM, async offload, 2 GB VRAM reserve, NVMe-backed offload.
-- `safe`: Dynamic VRAM, 3 GB reserve, ComfyUI execution cache disabled.
-- `novram`: Emergency fallback with aggressive offload; substantially slower.
+```bash
+git clone https://github.com/BIGWOO/comfyui-minimax-h3-provider.git
+cd comfyui-minimax-h3-provider
+chmod +x scripts/*.sh
+./scripts/setup.sh
+./scripts/download-models.sh --pack creator
+./scripts/start.sh --profile main --background
+./scripts/verify.sh --pack creator
+```
 
-ComfyUI listens only on `127.0.0.1:8188`.
+The secure default listens only on `127.0.0.1:8188`. On a private cloud network
+you may pass `--host 0.0.0.0` on Linux or `-Listen 0.0.0.0` on Windows, but add
+firewall and authentication controls before exposing it beyond the host.
 
-## Validated on this machine
+## Model packs
 
-- Six Director modes passed: T2V, I2V, FL2V, R2V, V2V, and RV2V.
-- At 640 x 352, 56 frames, and 20 steps, FirstBlockCache Fast reduced the
-  measured end-to-end time from 45.81 s to 35.55 s (22.41%).
-- The 4-step Turbo draft completed in 25.42 s and remains FL2VA-only.
-- The final FL2VA Fast run produced 124 frames at 864 x 480 with stereo audio
-  in 182.75 s, without an out-of-memory retry.
+| Pack | Contents | Approximate size |
+| --- | --- | ---: |
+| `creator` | FL2VA, shared encoders/VAEs, Turbo LoRA | 42.8 GB |
+| `all` | Creator pack plus Ref2VA | 63.8 GB |
+| `shared` | Text encoder and video/audio VAEs | 21.5 GB |
+| `fl2va` | FL2VA diffusion model only | 21.0 GB |
+| `ref2va` | Ref2VA diffusion model only | 21.0 GB |
+| `turbo` | Four-step Turbo LoRA only | 0.3 GB |
 
-## MiniMax H3 workflow roles
+Downloads resume through Hugging Face and are checked against pinned byte sizes
+and SHA-256 hashes. Model and upstream licenses remain authoritative.
 
-- `director-fl2va-quality-fbc.json`: T2V/I2V/FL2V, 25 steps, FirstBlockCache Fast.
-- `director-fl2va-turbo-draft.json`: T2V/I2V/FL2V draft, 4 steps, Kijai LoRA 0.75, no FBC.
-- `director-ref2va-quality-fbc.json`: R2V/V2V/RV2V, 25 steps, FirstBlockCache Fast (promoted after local A/B validation).
+## Runtime profiles
 
-Do not combine FirstBlockCache with EasyCache, CacheDiT, T8 Block Cache, or
-another DiT block replacement. SageAttention is not installed by this profile.
+- `main`: Dynamic VRAM, async offload, 2 GB reserve.
+- `safe`: 3 GB reserve and disabled ComfyUI execution cache.
+- `novram`: emergency aggressive offload; substantially slower.
 
-## Reproducibility
+FirstBlockCache Fast is the validated quality default. Turbo is a separate
+four-step draft path and is not stacked with FirstBlockCache.
 
-`profiles\minimax-h3\versions.lock.json` pins every source repository commit
-and CUDA PyTorch build. `profiles\minimax-h3\python.lock.txt` records the full
-tested Python environment.
-`profiles\minimax-h3\models.json` pins model paths, byte sizes, and Hugging Face
-LFS SHA-256 values. `setup.ps1` and `download-models.ps1` are idempotent.
+## Provider API
 
-The model weights are governed by the MiniMax H3 community license and the
-licenses shown in their Hugging Face repositories.
+The service exposes the standard ComfyUI REST surface:
+
+- `GET /system_stats`
+- `GET /object_info`
+- `POST /prompt`
+- `GET /history/{prompt_id}`
+- `GET /view`
+
+Creator IP Studio checks it with:
+
+```powershell
+studio provider check minimax-h3
+studio provider h3-generate --prompt "A cinematic studio shot" --preset draft
+```
+
+## One-prompt installation
+
+Give a coding agent this prompt:
+
+```text
+Install the MiniMax H3 provider from:
+https://github.com/BIGWOO/comfyui-minimax-h3-provider
+
+Read README.md completely. Inspect the NVIDIA GPU, VRAM, RAM, free disk, Git,
+Python, uv, and driver before changing anything. Use the creator model pack and
+the secure localhost default. Ask before downloading the approximately 43 GB
+model pack or changing firewall/system settings. Run setup, start the provider,
+run verification with hashes, then use Creator IP Studio to run a 512x288,
+39-frame Turbo draft smoke test with synthetic content. Return versions, GPU,
+health result, prompt ID, generation time, and the absolute output path.
+```
+
+## Reproducibility and validation
+
+- `profiles/minimax-h3/versions.lock.json` pins upstream Git commits and PyTorch.
+- `profiles/minimax-h3/python.lock.txt` pins the tested Python environment.
+- `profiles/minimax-h3/models.json` pins model paths, sizes, hashes, and packs.
+- `state/inventory.json` records the live node/API inventory after verification.
+
+Local validation covered T2V, I2V, FL2V, R2V, V2V, and RV2V. The 864x480,
+124-frame, 25-step FL2VA acceptance run completed in 182.75 seconds with a
+22,999 MiB peak VRAM reading. See `docs/validation-report.md` for details.
+
+## Safety and licensing
+
+Keep the API private, use only media you are authorized to process, and review
+the MiniMax H3, ComfyUI, Director, FirstBlockCache, and model repository terms
+before teaching, redistributing, or using generated media commercially.
+
+This repository's original scripts and documentation are Apache-2.0 licensed.
+Third-party components and model weights retain their own terms.

@@ -6,9 +6,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $expectedMain = (Join-Path $projectRoot 'runtime\ComfyUI\main.py').ToLowerInvariant()
+$pidFile = Join-Path $projectRoot 'state\comfyui.pid'
 $listeners = @(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
 
 if ($listeners.Count -eq 0) {
+    Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
     Write-Host "No ComfyUI listener found at 127.0.0.1:$Port"
     exit 0
 }
@@ -21,5 +23,6 @@ foreach ($processId in ($listeners | Select-Object -ExpandProperty OwningProcess
     }
 
     Stop-Process -Id $processId
+    Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
     Write-Host "Stopped ComfyUI process $processId at 127.0.0.1:$Port"
 }

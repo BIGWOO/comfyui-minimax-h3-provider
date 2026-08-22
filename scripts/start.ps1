@@ -2,7 +2,9 @@
 param(
     [ValidateSet('main', 'safe', 'novram')]
     [string]$Profile = 'main',
-    [int]$Port = 8188
+    [int]$Port = 8188,
+    [string]$Listen = '127.0.0.1',
+    [switch]$Background
 )
 
 $ErrorActionPreference = 'Stop'
@@ -25,7 +27,7 @@ $databasePath = (Join-Path $projectRoot 'data\user\comfyui.db') -replace '\\', '
 $databaseUrl = "sqlite:///$databasePath"
 $args = @(
     $main,
-    '--listen', '127.0.0.1',
+    '--listen', $Listen,
     '--port', "$Port",
     '--models-directory', (Join-Path $projectRoot 'models'),
     '--input-directory', (Join-Path $projectRoot 'data\input'),
@@ -52,6 +54,14 @@ $args += @('--verbose', 'INFO', $log)
 $env:HF_HUB_DISABLE_TELEMETRY = '1'
 $env:DO_NOT_TRACK = '1'
 
-Write-Host "Starting ComfyUI ($Profile) at http://127.0.0.1:$Port"
+Write-Host "Starting ComfyUI ($Profile) at http://${Listen}:$Port"
+if ($Background) {
+    $argumentLine = ($args | ForEach-Object { '"' + ([string]$_).Replace('"', '\"') + '"' }) -join ' '
+    $process = Start-Process -FilePath $python -ArgumentList $argumentLine -WindowStyle Hidden -PassThru
+    New-Item -ItemType Directory -Force -Path (Join-Path $projectRoot 'state') | Out-Null
+    Set-Content -LiteralPath (Join-Path $projectRoot 'state\comfyui.pid') -Value $process.Id -Encoding ascii
+    Write-Host "Started ComfyUI process $($process.Id)"
+    exit 0
+}
 & $python @args
 exit $LASTEXITCODE

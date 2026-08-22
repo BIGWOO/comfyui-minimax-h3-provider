@@ -10,7 +10,6 @@ from pathlib import Path
 import httpx
 import torch
 
-
 REQUIRED_NODES = {
     "UNETLoader",
     "CLIPLoader",
@@ -49,6 +48,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--url", default="http://127.0.0.1:8188")
+    parser.add_argument("--pack", choices=("all", "creator", "fl2va", "ref2va", "shared", "turbo"), default="creator")
     parser.add_argument("--skip-hashes", action="store_true")
     args = parser.parse_args()
 
@@ -66,7 +66,8 @@ def main() -> int:
 
     check("torch.cuda", torch.cuda.is_available(), f"torch={torch.__version__} cuda={torch.version.cuda}")
     gpu_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "unavailable"
-    check("gpu", "RTX 3090" in gpu_name, gpu_name)
+    gpu_vram = torch.cuda.get_device_properties(0).total_memory if torch.cuda.is_available() else 0
+    check("gpu-memory", gpu_vram >= 22 * 1024**3, f"{gpu_name}; {gpu_vram / 1024**3:.1f} GiB")
 
     for repo in versions["repositories"]:
         target = root / repo["target"]
@@ -76,7 +77,8 @@ def main() -> int:
             actual = f"error: {exc}"
         check(f"repo:{repo['name']}", actual == repo["commit"], str(actual))
 
-    for model in manifest["models"]:
+    selected_models = [model for model in manifest["models"] if args.pack in model["packs"]]
+    for model in selected_models:
         path = root / "models" / model["relative_path"]
         exists = path.exists()
         size_ok = exists and path.stat().st_size == int(model["size"])
@@ -108,7 +110,7 @@ def main() -> int:
             "system": system,
             "nodes": sorted(object_info),
             "object_info": object_info,
-            "models": [m["relative_path"] for m in manifest["models"] if (root / "models" / m["relative_path"]).exists()],
+            "models": [m["relative_path"] for m in selected_models if (root / "models" / m["relative_path"]).exists()],
         }
         (state / "inventory.json").write_text(json.dumps(inventory, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception as exc:  # noqa: BLE001

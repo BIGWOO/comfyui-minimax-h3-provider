@@ -23,6 +23,7 @@ foreach ($processId in ($listeners | Select-Object -ExpandProperty OwningProcess
     }
 
     Stop-Process -Id $processId
+    Wait-Process -Id $processId -Timeout 15 -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
     Write-Host "Stopped ComfyUI process $processId at 127.0.0.1:$Port"
 }

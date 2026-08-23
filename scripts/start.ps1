@@ -16,6 +16,10 @@ if (-not (Test-Path -LiteralPath $python) -or -not (Test-Path -LiteralPath $main
     throw 'Runtime is not installed. Run scripts\setup.ps1 first.'
 }
 
+@('data\input', 'data\output', 'data\temp', 'data\user', 'logs', 'state') | ForEach-Object {
+    New-Item -ItemType Directory -Force -Path (Join-Path $projectRoot $_) | Out-Null
+}
+
 $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if ($listener) {
     $owners = ($listener | Select-Object -ExpandProperty OwningProcess -Unique) -join ', '
@@ -53,6 +57,9 @@ $log = Join-Path $projectRoot ("logs\comfyui-{0}-{1}.log" -f $Profile, (Get-Date
 $args += @('--verbose', 'INFO', $log)
 $env:HF_HUB_DISABLE_TELEMETRY = '1'
 $env:DO_NOT_TRACK = '1'
+$env:CUDA_DEVICE_ORDER = 'PCI_BUS_ID'
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 
 Write-Host "Starting ComfyUI ($Profile) at http://${Listen}:$Port"
 if ($Background) {

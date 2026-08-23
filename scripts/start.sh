@@ -37,7 +37,7 @@ args=("$main" --listen "$host" --port "$port"
   --reserve-vram "$reserve" --enable-dynamic-vram --async-offload --fast-disk --enable-manager)
 [[ "$profile" == "main" ]] || args+=(--cache-none)
 [[ "$profile" == "novram" ]] && args+=(--novram)
-export HF_HUB_DISABLE_TELEMETRY=1 DO_NOT_TRACK=1
+export HF_HUB_DISABLE_TELEMETRY=1 DO_NOT_TRACK=1 CUDA_DEVICE_ORDER=PCI_BUS_ID PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 if [[ "$background" == true ]]; then
   log="$project_root/logs/comfyui-$profile-$(date +%Y%m%d-%H%M%S).log"
   nohup "$python" "${args[@]}" >"$log" 2>&1 &

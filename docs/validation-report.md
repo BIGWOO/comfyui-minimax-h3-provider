@@ -57,6 +57,7 @@ The final FL2VA Fast test completed without an out-of-memory retry:
 
 Generated outputs and raw machine reports are intentionally ignored by Git.
 Re-run `scripts\benchmark.ps1` to regenerate them.
+
 ## 2026-11-20 upgrade to ComfyUI 0.44.2
 
 - ComfyUI v0.44.2 (`e6515b16`), Director `85c66f59`, FirstBlockCache v1.1.1
@@ -78,3 +79,11 @@ Re-run `scripts\benchmark.ps1` to regenerate them.
 | FL2VA Fast, 864 x 480, 124 frames, first job after restart | Passed | 161.71 s |
 | I2V, 512 x 288, 39 frames, 25 steps | Passed | 23.77 s |
 
+### Intermittent read failure after the upgrade
+
+`--disable-pinned-memory` reduced the aimdo read error but did not eliminate it.
+In one safe-profile session on 2026-11-20 (14 jobs from 18:35 to 22:42), the
+11th job, an 832 x 576, 107-frame FL2VA Fast run, failed after 7 s with
+`hostbuf_file_reader_read failed` (`GetOverlappedResult` error 1450). The same
+job succeeded when resubmitted, and the other 13 jobs passed. Clients should
+resubmit this specific error; the runtime does not fix it.

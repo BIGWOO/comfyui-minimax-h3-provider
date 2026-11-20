@@ -10,19 +10,19 @@
     {
       "name": "ComfyUI",
       "url": "https://github.com/Comfy-Org/ComfyUI.git",
-      "commit": "cbbc9dab1f03d0d9a6caa8a8be7d77a7e37e1e44",
+      "commit": "e6515b16ed360b01bd6548bffaca193f88f181fb",
       "target": "runtime/ComfyUI"
     },
     {
       "name": "ComfyUI_MiniMaxH3_Director",
       "url": "https://github.com/AIMixer/ComfyUI_MiniMaxH3_Director.git",
-      "commit": "ab5f3b17ff343e84ff5010f998d30a2e930bd32d",
+      "commit": "85c66f59d6b13bec71324271258fcae07a2a5898",
       "target": "runtime/ComfyUI/custom_nodes/ComfyUI_MiniMaxH3_Director"
     },
     {
       "name": "ComfyUI-MiniMaxH3-FirstBlockCache",
       "url": "https://github.com/duckyshell/ComfyUI-MiniMaxH3-FirstBlockCache.git",
-      "commit": "725973c3bfd9de6dce249bc93dc5fe27f820df31",
+      "commit": "d474755360cc1784df1b7c933ca28195e55e3445",
       "target": "runtime/ComfyUI/custom_nodes/ComfyUI-MiniMaxH3-FirstBlockCache"
     }
   ]

@@ -57,3 +57,24 @@ The final FL2VA Fast test completed without an out-of-memory retry:
 
 Generated outputs and raw machine reports are intentionally ignored by Git.
 Re-run `scripts\benchmark.ps1` to regenerate them.
+## 2026-11-20 upgrade to ComfyUI 0.44.2
+
+- ComfyUI v0.44.2 (`e6515b16`), Director `85c66f59`, FirstBlockCache v1.1.1
+  (`d4747553`), comfy-aimdo 0.6.0, comfy-kitchen 0.2.40, frontend 1.57.6.
+- Director's `ultralytics` requirement is not installed. Only the optional
+  FaceRefine path imports it, lazily.
+- A first attempt that upgraded ComfyUI alone failed on Windows: the first H3
+  load after start raised `hostbuf_file_reader_read failed` (aimdo
+  `GetOverlappedResult` error 1450), and an 864 x 480 FL2VA quality run killed
+  the process after the first step. The second attempt also updated Director
+  and FirstBlockCache and added `--disable-pinned-memory` to `scripts/start.ps1`.
+  These changes were made together, so each failure was not isolated.
+- `verify.ps1 -Pack creator -SkipHashes` passed; model files were unchanged.
+
+| Run (safe profile) | Result | Prompt time |
+| --- | --- | ---: |
+| FL2VA Turbo, 512 x 288, 39 frames, first job after start | Passed | 20.81 s |
+| FL2VA Fast, 864 x 480, 124 frames, 25 steps | Passed | 170.46 s |
+| FL2VA Fast, 864 x 480, 124 frames, first job after restart | Passed | 161.71 s |
+| I2V, 512 x 288, 39 frames, 25 steps | Passed | 23.77 s |
+

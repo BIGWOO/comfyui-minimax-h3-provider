@@ -43,6 +43,7 @@ $args = @(
     '--enable-dynamic-vram',
     '--async-offload',
     '--fast-disk',
+    '--disable-pinned-memory',
     '--enable-manager'
 )
 
